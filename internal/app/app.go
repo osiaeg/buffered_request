@@ -1,7 +1,9 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -35,17 +37,26 @@ func Run() {
 	kafkaWriter := services.GetKafkaWriter("localhost:9092", "task")
 	defer kafkaWriter.Close()
 
-	reader := getKafkaReader("localhost:9092", "task", "0")
-	defer reader.Close()
+	go func() {
+		reader := getKafkaReader("localhost:9092", "task", "0")
+		defer reader.Close()
 
-	fmt.Println("start consuming ... !!")
-	for {
-		m, err := reader.ReadMessage(context.Background())
-		if err != nil {
-			log.Fatalln(err)
+		fmt.Println("start consuming ... !!")
+		for {
+			m, err := reader.ReadMessage(context.Background())
+			if err != nil {
+				log.Fatalln(err)
+			}
+			res := &services.Request{}
+			value := bytes.NewBuffer(m.Value)
+			derr := json.NewDecoder(value).Decode(res)
+			if derr != nil {
+				panic(derr)
+			}
+			log.Println(res)
+			// fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 		}
-		fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
-	}
+	}()
 
 	mux := http.NewServeMux()
 
