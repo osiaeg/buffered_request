@@ -34,6 +34,7 @@ func Consumer(reader *kafka.Reader) {
 		if derr != nil {
 			panic(derr)
 		}
+		log.Println("Succesfully read form kafka.")
 		sender.SendRequest(res)
 		// fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 	}

@@ -11,6 +11,7 @@ import (
 
 func ProducerHandler(kafkaWriter *kafka.Writer) func(http.ResponseWriter, *http.Request) {
 	return http.HandlerFunc(func(wrt http.ResponseWriter, req *http.Request) {
+		log.Println("POST /")
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
 			http.Error(wrt, err.Error(), http.StatusBadRequest)
@@ -27,7 +28,7 @@ func ProducerHandler(kafkaWriter *kafka.Writer) func(http.ResponseWriter, *http.
 			http.Error(wrt, err.Error(), http.StatusBadRequest)
 			log.Fatalln(err)
 		}
-		log.Println(fmt.Sprintf("address-%s", req.RemoteAddr))
+		log.Println("Body from request succesfully written to kafka.")
 	})
 }
 

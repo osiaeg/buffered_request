@@ -1,6 +1,8 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -69,13 +71,12 @@ func (s *Sender) SendRequest(req *Request) {
 		log.Println("Error on response.\n[ERROR] -", err)
 	}
 	defer resp.Body.Close()
+	log.Println(fmt.Sprintf("Send POST %s", posturl))
 
-	log.Println("Request is sended.")
-
-	// res := &Response{}
-	// derr := json.NewDecoder(resp.Body).Decode(res)
-	// if derr != nil {
-	// 	panic(derr)
-	// }
-	// log.Println(res)
+	res := &Response{}
+	derr := json.NewDecoder(resp.Body).Decode(res)
+	if derr != nil {
+		panic(derr)
+	}
+	log.Println(fmt.Sprintf("Get response %+v", res))
 }

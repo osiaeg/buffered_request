@@ -18,7 +18,6 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      # KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,LISTENER_FRED:PLAINTEXT
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
       # KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
       # KAFKA_LISTENERS: LISTENER_FRED://0.0.0.0:9092,PLAINTEXT://kafka:29092
@@ -28,21 +27,6 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-
-  # kafka2:
-  #   image: confluentinc/cp-kafka:latest
-  #   depends_on:
-  #     - zookeeper
-  #   ports:
-  #     - 29093:29092
-  #   hostname: kafka2
-  #   environment:
-  #     KAFKA_BROKER_ID: 2
-  #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:29093
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
-  #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-  #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -58,14 +42,17 @@ services:
       - kafka
       - zookeeper
 
-  # producer:
-  #   build:
-  #     context: .
-  #     dockerfile: producer/Dockerfile
-  #   ports:
-  #     - 8080:8080
-  #   links:
-  #     - kafka-ui
+  buffered_service:
+    image: buffered_server
+    container_name: buffer_request
+    build:
+      context: ../
+      dockerfile: build/Dockerfile
+    command: ./buffer -env docker
+    ports:
+      - 9000:9000
+    links:
+      - kafka-ui
 
   # consumer:
   #   build:
