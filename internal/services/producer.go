@@ -11,20 +11,13 @@ import (
 
 func ProducerHandler(kafkaWriter *kafka.Writer) func(http.ResponseWriter, *http.Request) {
 	return http.HandlerFunc(func(wrt http.ResponseWriter, req *http.Request) {
-		// request := &services.Request{}
-		// err := json.NewDecoder(req.Body).Decode(request)
-		// if err != nil {
-		// 	http.Error(wrt, err.Error(), http.StatusBadRequest)
-		// 	log.Fatalln(err)
-		// }
-
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
+			http.Error(wrt, err.Error(), http.StatusBadRequest)
 			log.Fatalln(err)
 		}
 
 		msg := kafka.Message{
-			// Key:   []byte(fmt.Sprintf("address-%s", req.RemoteAddr)),
 			Key:   []byte(fmt.Sprintf("address-%s", req.RemoteAddr)),
 			Value: body,
 		}

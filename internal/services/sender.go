@@ -1,7 +1,6 @@
 package services
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
@@ -30,6 +29,7 @@ type Request struct {
 	IndicatorToMoFactId string `json:"indicator_to_mo_fact_id"`
 	Value               string `json:"value"`
 	FactTime            string `json:"fact_time"`
+	IsPlane             string `json:"is_plane"`
 	AuthUserId          string `json:"auth_user_id"`
 	Comment             string `json:"comment"`
 }
@@ -44,20 +44,20 @@ func NewSender() *Sender {
 	}
 }
 
-func (s *Sender) SendRequest() {
+func (s *Sender) SendRequest(req *Request) {
 	posturl := "https://development.kpi-drive.ru/_api/facts/save_fact"
 
 	body := url.Values{
-		"period_start":            {"2024-05-01"},
-		"period_end":              {"2024-05-31"},
-		"period_key":              {"month"},
-		"indicator_to_mo_id":      {"227373"},
-		"indicator_to_mo_fact_id": {"0"},
-		"value":                   {"1"},
-		"fact_time":               {"2024-05-31"},
-		"is_plane":                {"0"},
-		"auth_user_id":            {"40"},
-		"comment":                 {"buffer Last_name"},
+		"period_start":            {req.PeriodStart},
+		"period_end":              {req.PeriodEnd},
+		"period_key":              {req.PeriodKey},
+		"indicator_to_mo_id":      {req.IndicatorToMoId},
+		"indicator_to_mo_fact_id": {req.IndicatorToMoFactId},
+		"value":                   {req.Value},
+		"fact_time":               {req.FactTime},
+		"is_plane":                {req.IsPlane},
+		"auth_user_id":            {req.AuthUserId},
+		"comment":                 {req.Comment},
 	}
 
 	request, err := http.NewRequest("POST", posturl, strings.NewReader(body.Encode()))
@@ -70,10 +70,12 @@ func (s *Sender) SendRequest() {
 	}
 	defer resp.Body.Close()
 
-	res := &Response{}
-	derr := json.NewDecoder(resp.Body).Decode(res)
-	if derr != nil {
-		panic(derr)
-	}
-	log.Println(res)
+	log.Println("Request is sended.")
+
+	// res := &Response{}
+	// derr := json.NewDecoder(resp.Body).Decode(res)
+	// if derr != nil {
+	// 	panic(derr)
+	// }
+	// log.Println(res)
 }

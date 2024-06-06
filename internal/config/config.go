@@ -1,9 +1,10 @@
 package config
 
 import (
-    "fmt"
-    "os"
-    "gopkg.in/yaml.v2"
+	"fmt"
+	"os"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -11,17 +12,18 @@ type Config struct {
 		Host string `yaml:"host"`
 		Port string `yaml:"port"`
 	} `yaml:"server"`
+	Kafka struct {
+		Host      string `yaml:"host"`
+		Port      string `yaml:"port"`
+		Topic     string `yaml:"topic"`
+		Partition string `yaml:"partition"`
+	} `yaml:"kafka"`
 }
 
 func Parse(env string) *Config {
 	var cfg Config
-	var path string
 
-	if env == "local" {
-		path = "configs/local.yml"
-	} else if env == "docker" {
-		path = "configs/docker.yml"
-	}
+	path := fmt.Sprintf("configs/%s.yml", env)
 
 	f, err := os.Open(path)
 	if err != nil {
