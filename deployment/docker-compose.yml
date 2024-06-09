@@ -25,8 +25,8 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
       # KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT,LISTENER_FRED
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      # KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      # KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
 
   kafka-ui:
     image: provectuslabs/kafka-ui
@@ -49,10 +49,22 @@ services:
       context: ../
       dockerfile: build/Dockerfile
     command: ./buffer -env docker
+    depends_on:
+      - kafka
     ports:
       - 9000:9000
     links:
       - kafka-ui
+
+  kafka-setup:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+    command: "bash -c 'cub kafka-ready -b kafka:29092 1 30 && \
+                         kafka-topics --create --if-not-exists --bootstrap-server kafka:29092 --topic task --partitions 1 --replication-factor 1'"
 
   # consumer:
   #   build:
