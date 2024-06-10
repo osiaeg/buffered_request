@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"strings"
+	"time"
 
 	kafka "github.com/segmentio/kafka-go"
 )
@@ -28,14 +29,14 @@ func Consumer(reader *kafka.Reader) {
 		if err != nil {
 			log.Fatalln(err)
 		}
+
 		res := &Request{}
 		value := bytes.NewBuffer(m.Value)
-		derr := json.NewDecoder(value).Decode(res)
-		if derr != nil {
-			panic(derr)
-		}
+		json.NewDecoder(value).Decode(res)
+
 		log.Println("Succesfully read form kafka.")
 		sender.SendRequest(res)
+		time.Sleep(1 * time.Second)
 		// fmt.Printf("message at topic:%v partition:%v offset:%v	%s = %s\n", m.Topic, m.Partition, m.Offset, string(m.Key), string(m.Value))
 	}
 }
