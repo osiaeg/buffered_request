@@ -3,9 +3,11 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	kafka "github.com/segmentio/kafka-go"
 )
@@ -22,14 +24,6 @@ func createKafkaMessage(key, value []byte) kafka.Message {
 		Key:   key,
 		Value: value,
 	}
-}
-
-func writeMessage(writer *kafka.Writer, context context.Context, msg kafka.Message) {
-	err := writer.WriteMessages(context, msg)
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("Body from request succesfully written to kafka.")
 }
 
 func ProducerHandler(kafkaWriter *kafka.Writer) func(http.ResponseWriter, *http.Request) {
@@ -56,7 +50,31 @@ func ProducerHandler(kafkaWriter *kafka.Writer) func(http.ResponseWriter, *http.
 
 			key := []byte(fmt.Sprintf("address-%s", req.RemoteAddr))
 			msg := createKafkaMessage(key, value)
-			writeMessage(kafkaWriter, req.Context(), msg)
+
+			const retries = 3
+			for i := 0; i < retries; i++ {
+				log.Println(fmt.Sprintf("Try to send msg: %s", i))
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+
+				err = kafkaWriter.WriteMessages(ctx, msg)
+				if errors.Is(err, kafka.LeaderNotAvailable) || errors.Is(err, context.DeadlineExceeded) {
+					time.Sleep(time.Millisecond * 250)
+					continue
+				}
+
+				if err != nil {
+					log.Fatalf("unexpected error %v", err)
+				}
+				break
+			}
+
+			// err := kafkaWriter.WriteMessages(req.Context(), msg)
+			// if err != nil {
+			// 	log.Fatalln(err)
+			// }
+
+			log.Println("Body from request succesfully written to kafka.")
 		}
 		checkBracket(decoder)
 	})

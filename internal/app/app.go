@@ -16,14 +16,13 @@ func Run() {
 	kafkaWriter := services.GetKafkaWriter(kafkaURL, cfg.Kafka.Topic)
 	defer kafkaWriter.Close()
 
-	kafkaReader := services.GetKafkaReader(
-		kafkaURL,
-		cfg.Kafka.Topic,
-		cfg.Kafka.Partition,
-	)
-	defer kafkaReader.Close()
+	// kafkaReader := services.GetKafkaReader(
+	// 	kafkaURL,
+	// 	cfg.Kafka.Topic,
+	// )
+	// defer kafkaReader.Close()
 
-	go services.Consumer(kafkaReader)
+	// go services.Consumer(kafkaReader)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /", services.ProducerHandler(kafkaWriter))
